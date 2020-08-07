@@ -38,9 +38,7 @@ public class WalletTransaction {
     }
 
     public boolean execute() throws InvalidTransactionException {
-        if (buyerId == null || (sellerId == null || amount < 0.0)) {
-            throw new InvalidTransactionException("This is an invalid transaction");
-        }
+        judgeInvalidTransaction();
         if (status == STATUS.EXECUTED) return true;
         boolean isLocked = false;
         try {
@@ -71,6 +69,12 @@ public class WalletTransaction {
             if (isLocked) {
                 RedisDistributedLock.getSingletonInstance().unlock(id);
             }
+        }
+    }
+
+    private void judgeInvalidTransaction() throws InvalidTransactionException {
+        if (buyerId == null || (sellerId == null || amount < 0.0)) {
+            throw new InvalidTransactionException("This is an invalid transaction");
         }
     }
 
