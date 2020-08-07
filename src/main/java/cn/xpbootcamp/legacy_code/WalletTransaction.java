@@ -46,8 +46,7 @@ public class WalletTransaction {
             }
             if (status == STATUS.EXECUTED) return true; // double check
             if (changeStatusToExpired()) return false;
-            WalletService walletService = new WalletServiceImpl();
-            String walletTransactionId = walletService.moveMoney(id, buyerId, sellerId, amount);
+            String walletTransactionId = transferToSeller();
             if (walletTransactionId != null) {
                 this.walletTransactionId = walletTransactionId;
                 this.status = STATUS.EXECUTED;
@@ -61,6 +60,11 @@ public class WalletTransaction {
                 RedisDistributedLock.getSingletonInstance().unlock(id);
             }
         }
+    }
+
+    private String transferToSeller() {
+        WalletService walletService = new WalletServiceImpl();
+        return walletService.moveMoney(id, buyerId, sellerId, amount);
     }
 
     private boolean changeStatusToExpired() {
