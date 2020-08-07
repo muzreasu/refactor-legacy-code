@@ -33,7 +33,7 @@ public class WalletTransaction {
         this.createdTimestamp = System.currentTimeMillis();
     }
 
-    public boolean execute() throws InvalidTransactionException {
+    public boolean transferMoney() throws InvalidTransactionException {
         judgeInvalidTransaction();
         if (statusIsExecuted()) return true;
         boolean isLocked = false;
