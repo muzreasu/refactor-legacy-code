@@ -40,25 +40,28 @@ public class WalletTransaction {
         try {
             isLocked = RedisDistributedLock.getSingletonInstance().lock(id);
 
-            // 锁定未成功，返回false
             if (!isLocked) {
                 return false;
             }
             if (status == STATUS.EXECUTED) return true; // double check
             if (changeStatusToExpired()) return false;
             String walletTransactionId = transferToSeller();
-            if (walletTransactionId != null) {
-                this.walletTransactionId = walletTransactionId;
-                this.status = STATUS.EXECUTED;
-                return true;
-            } else {
-                this.status = STATUS.FAILED;
-                return false;
-            }
+            return changeStatusByTransferResult(walletTransactionId);
         } finally {
             if (isLocked) {
                 RedisDistributedLock.getSingletonInstance().unlock(id);
             }
+        }
+    }
+
+    private boolean changeStatusByTransferResult(String walletTransactionId) {
+        if (walletTransactionId != null) {
+            this.walletTransactionId = walletTransactionId;
+            this.status = STATUS.EXECUTED;
+            return true;
+        } else {
+            this.status = STATUS.FAILED;
+            return false;
         }
     }
 
