@@ -45,12 +45,7 @@ public class WalletTransaction {
                 return false;
             }
             if (status == STATUS.EXECUTED) return true; // double check
-            long executionInvokedTimestamp = System.currentTimeMillis();
-            // 交易超过20天
-            if (executionInvokedTimestamp - createdTimestamp > 1728000000) {
-                this.status = STATUS.EXPIRED;
-                return false;
-            }
+            if (changeStatusToExpired()) return false;
             WalletService walletService = new WalletServiceImpl();
             String walletTransactionId = walletService.moveMoney(id, buyerId, sellerId, amount);
             if (walletTransactionId != null) {
@@ -66,6 +61,16 @@ public class WalletTransaction {
                 RedisDistributedLock.getSingletonInstance().unlock(id);
             }
         }
+    }
+
+    private boolean changeStatusToExpired() {
+        long executionInvokedTimestamp = System.currentTimeMillis();
+        int twentyDays = 1728000000;
+        if (executionInvokedTimestamp - createdTimestamp > twentyDays) {
+            this.status = STATUS.EXPIRED;
+            return true;
+        }
+        return false;
     }
 
     private void judgeInvalidTransaction() throws InvalidTransactionException {
