@@ -35,7 +35,7 @@ public class WalletTransaction {
 
     public boolean execute() throws InvalidTransactionException {
         judgeInvalidTransaction();
-        if (status == STATUS.EXECUTED) return true;
+        if (statusIsExecuted()) return true;
         boolean isLocked = false;
         try {
             isLocked = RedisDistributedLock.getSingletonInstance().lock(id);
@@ -43,7 +43,7 @@ public class WalletTransaction {
             if (!isLocked) {
                 return false;
             }
-            if (status == STATUS.EXECUTED) return true; // double check
+            if (statusIsExecuted()) return true; // double check
             if (changeStatusToExpired()) return false;
             String walletTransactionId = transferToSeller();
             return changeStatusByTransferResult(walletTransactionId);
@@ -52,6 +52,10 @@ public class WalletTransaction {
                 RedisDistributedLock.getSingletonInstance().unlock(id);
             }
         }
+    }
+
+    private boolean statusIsExecuted() {
+        return status == STATUS.EXECUTED;
     }
 
     private boolean changeStatusByTransferResult(String walletTransactionId) {
